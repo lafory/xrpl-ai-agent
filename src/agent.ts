@@ -23,16 +23,29 @@ export const SYSTEM_PROMPT = [
   'You can place orders on the native DEX and trade XLS-20 NFTs through the provided tools.',
   'You never see or need the wallet seed: signing happens outside of your context.',
   `Every transaction is capped at ${MAX_SPEND_XRP} XRP by a programmatic guardrail; do not attempt to bypass it.`,
-  'Before trading, restate the amounts you are about to commit. If a tool returns an error, explain it plainly instead of retrying blindly.',
+  'Before trading, restate the amounts you are about to commit.',
+  'Every tool result is JSON with a "status" field: report a trade as done only when status is "submitted",',
+  'and when status is "rejected" say plainly that nothing was signed and quote the reason.',
 ].join(' ');
+
+async function runTool<T>(action: () => Promise<T>): Promise<string> {
+  try {
+    return JSON.stringify({ status: 'submitted', result: await action() });
+  } catch (error) {
+    return JSON.stringify({
+      status: 'rejected',
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 
 export function buildTools(ctx: AgentContext): StructuredToolInterface[] {
   const placeDexOrderTool = tool(
-    async (input: PlaceDexOrderInput) => {
-      assertWithinSpendLimit(spendXrpOf(input.takerGets), ctx.maxSpendXrp, 'placeDexOrder');
-      const result = await placeDexOrder(ctx, input);
-      return JSON.stringify(result);
-    },
+    async (input: PlaceDexOrderInput) =>
+      runTool(async () => {
+        assertWithinSpendLimit(spendXrpOf(input.takerGets), ctx.maxSpendXrp, 'placeDexOrder');
+        return placeDexOrder(ctx, input);
+      }),
     {
       name: 'placeDexOrder',
       description:
@@ -43,10 +56,7 @@ export function buildTools(ctx: AgentContext): StructuredToolInterface[] {
   );
 
   const buyNftToolInstance = tool(
-    async (input: AcceptNftOfferInput) => {
-      const result = await buyNft(ctx, input);
-      return JSON.stringify(result);
-    },
+    async (input: AcceptNftOfferInput) => runTool(() => buyNft(ctx, input)),
     {
       name: 'buyNftTool',
       description:
@@ -57,13 +67,13 @@ export function buildTools(ctx: AgentContext): StructuredToolInterface[] {
   );
 
   const createNftOfferToolInstance = tool(
-    async (input: CreateNftOfferInput) => {
-      if (input.side === 'buy') {
-        assertWithinSpendLimit(xrpValueOf(input.amount), ctx.maxSpendXrp, 'createNftOffer(buy)');
-      }
-      const result = await createNftOffer(ctx, input);
-      return JSON.stringify(result);
-    },
+    async (input: CreateNftOfferInput) =>
+      runTool(async () => {
+        if (input.side === 'buy') {
+          assertWithinSpendLimit(xrpValueOf(input.amount), ctx.maxSpendXrp, 'createNftOffer(buy)');
+        }
+        return createNftOffer(ctx, input);
+      }),
     {
       name: 'createNftOffer',
       description: 'Create an XLS-20 NFT buy or sell offer (NFTokenCreateOffer) for a given NFTokenID.',
@@ -77,6 +87,9 @@ export function buildTools(ctx: AgentContext): StructuredToolInterface[] {
 export interface BuildAgentOptions {
   apiKey?: string;
   model?: string;
+  /** OpenAI-compatible endpoint, e.g. https://openrouter.ai/api/v1 */
+  baseUrl?: string;
+  maxTokens?: number;
 }
 
 export async function buildAgent(ctx: AgentContext, options: BuildAgentOptions = {}): Promise<AgentExecutor> {
@@ -85,10 +98,13 @@ export async function buildAgent(ctx: AgentContext, options: BuildAgentOptions =
     throw new Error('OPENAI_API_KEY is required to run the agent.');
   }
 
+  const baseUrl = options.baseUrl ?? process.env.OPENAI_BASE_URL;
   const llm = new ChatOpenAI({
     apiKey,
     model: options.model ?? process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
     temperature: 0,
+    ...(options.maxTokens ? { maxTokens: options.maxTokens } : {}),
+    ...(baseUrl ? { configuration: { baseURL: baseUrl } } : {}),
   });
 
   const prompt = ChatPromptTemplate.fromMessages([

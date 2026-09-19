@@ -8,8 +8,8 @@ export const amountSchema = z.object({
   value: z.string().describe('Decimal amount as a string, e.g. "12.5".'),
   issuer: z
     .string()
-    .optional()
-    .describe('Account address that issues the token. Required for every currency except XRP.'),
+    .nullish()
+    .describe('Account address that issues the token. Required for every currency except XRP, null otherwise.'),
 });
 
 export type AmountInput = z.infer<typeof amountSchema>;

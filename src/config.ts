@@ -10,7 +10,9 @@ export interface AppConfig {
   rpcUrl: string;
   seed: string;
   openAiApiKey?: string;
+  openAiBaseUrl?: string;
   openAiModel: string;
+  openAiMaxTokens?: number;
   maxSpendXrp: number;
 }
 
@@ -50,7 +52,9 @@ export function loadConfig(): AppConfig {
     rpcUrl: getRpcUrl(),
     seed: getSeed(),
     openAiApiKey: process.env.OPENAI_API_KEY?.trim(),
+    openAiBaseUrl: process.env.OPENAI_BASE_URL?.trim(),
     openAiModel: process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini',
+    openAiMaxTokens: process.env.OPENAI_MAX_TOKENS ? Number(process.env.OPENAI_MAX_TOKENS) : undefined,
     maxSpendXrp: getMaxSpendXrp(),
   };
 }

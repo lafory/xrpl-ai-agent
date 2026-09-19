@@ -21,7 +21,12 @@ async function main(): Promise<void> {
       return;
     }
 
-    const executor = await buildAgent(ctx, { apiKey: config.openAiApiKey, model: config.openAiModel });
+    const executor = await buildAgent(ctx, {
+      apiKey: config.openAiApiKey,
+      model: config.openAiModel,
+      baseUrl: config.openAiBaseUrl,
+      maxTokens: config.openAiMaxTokens,
+    });
     const result = await executor.invoke({ input: instruction });
     console.log('\nAgent:', result.output);
   } finally {

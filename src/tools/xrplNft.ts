@@ -10,9 +10,9 @@ export const createNftOfferSchema = z.object({
   side: z.enum(['sell', 'buy']).describe('"sell" to list an owned NFT, "buy" to bid on someone else\'s NFT.'),
   owner: z
     .string()
-    .optional()
-    .describe('Current owner of the NFT. Required for buy offers, forbidden for sell offers.'),
-  destination: z.string().optional().describe('Restrict who may accept this offer.'),
+    .nullish()
+    .describe('Current owner of the NFT. Required for buy offers, null for sell offers.'),
+  destination: z.string().nullish().describe('Restrict who may accept this offer, null for an open offer.'),
 });
 
 export const acceptNftOfferSchema = z.object({

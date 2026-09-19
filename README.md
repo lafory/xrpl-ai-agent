@@ -24,8 +24,11 @@ cp .env.example .env
 npm run faucet   # prints a funded Testnet address + seed; paste the seed into .env
 ```
 
-Environment variables (see `.env.example`): `XRPL_RPC_URL`, `XRPL_SEED`, `OPENAI_API_KEY`,
-optional `OPENAI_MODEL` and `MAX_SPEND_XRP`.
+Environment variables (see `.env.example`): `XRPL_RPC_URL`, `XRPL_SEED`, `OPENAI_API_KEY`, and the
+optional `OPENAI_BASE_URL`, `OPENAI_MODEL`, `OPENAI_MAX_TOKENS`, `MAX_SPEND_XRP`.
+
+Any OpenAI-compatible provider works — for OpenRouter set `OPENAI_BASE_URL=https://openrouter.ai/api/v1`
+and `OPENAI_MODEL=openai/gpt-4o`.
 
 ## Run
 
@@ -46,6 +49,8 @@ or tool argument, and the LLM only ever sees the wallet's public address.
   destination restriction, self-dealing and the price before signing.
 - Every transaction goes through `client.autofill()` → `validate()` → `wallet.sign()` →
   `client.submitAndWait()`, and non-`tes*` engine results throw.
+- Tools return `{"status":"submitted"|"rejected", ...}` so a blocked trade cannot be reported to the
+  user as a success by the model.
 
 ## Checks
 

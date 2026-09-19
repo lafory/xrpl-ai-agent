@@ -9,15 +9,15 @@ export const placeDexOrderSchema = z.object({
   takerPays: amountSchema.describe('What this wallet receives (buys) when the offer is consumed.'),
   immediateOrCancel: z
     .boolean()
-    .optional()
+    .nullish()
     .describe('If true, the offer never rests on the order book; unmatched portions are cancelled.'),
-  fillOrKill: z.boolean().optional().describe('If true, the offer must be filled entirely or not at all.'),
-  passive: z.boolean().optional().describe('If true, the offer does not consume offers with the same quality.'),
+  fillOrKill: z.boolean().nullish().describe('If true, the offer must be filled entirely or not at all.'),
+  passive: z.boolean().nullish().describe('If true, the offer does not consume offers with the same quality.'),
   expirationSeconds: z
     .number()
     .int()
     .positive()
-    .optional()
+    .nullish()
     .describe('Seconds from now after which an unfilled offer expires.'),
 });
 
@@ -50,7 +50,7 @@ export function buildOfferCreate(account: string, input: PlaceDexOrderInput): Of
   };
   const flags = buildFlags(input);
   if (flags !== undefined) transaction.Flags = flags;
-  if (input.expirationSeconds !== undefined) {
+  if (input.expirationSeconds != null) {
     transaction.Expiration = Math.floor(Date.now() / 1000) - RIPPLE_EPOCH_OFFSET_SECONDS + input.expirationSeconds;
   }
   return transaction;
