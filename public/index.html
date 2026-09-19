@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>XRPL Agent — Testnet</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>XRPL Trading Agent</h1>
+      <span class="badge" id="network">connecting…</span>
+    </header>
+
+    <main>
+      <section class="card" id="wallet-card">
+        <h2>Wallet</h2>
+        <dl>
+          <dt>Address</dt>
+          <dd id="address">—</dd>
+          <dt>Balance</dt>
+          <dd id="balance">—</dd>
+          <dt>Guardrail</dt>
+          <dd id="guardrail">—</dd>
+        </dl>
+        <button id="refresh" type="button">Refresh</button>
+      </section>
+
+      <section class="card">
+        <h2>Agent</h2>
+        <p class="hint" id="agent-hint">Ask in plain English, e.g. “sell 1 XRP for 15 USD issued by r…”.</p>
+        <textarea id="agent-input" rows="3" placeholder="Sell 1 XRP for 15 USD issued by r..."></textarea>
+        <button id="agent-send" type="button">Send to agent</button>
+        <pre id="agent-output" class="output"></pre>
+      </section>
+
+      <section class="card">
+        <h2>DEX order (direct)</h2>
+        <form id="dex-form">
+          <fieldset>
+            <legend>Taker gets (you give)</legend>
+            <input name="getsCurrency" value="XRP" placeholder="Currency" required />
+            <input name="getsValue" value="1" placeholder="Amount" required />
+            <input name="getsIssuer" placeholder="Issuer (blank for XRP)" />
+          </fieldset>
+          <fieldset>
+            <legend>Taker pays (you receive)</legend>
+            <input name="paysCurrency" value="USD" placeholder="Currency" required />
+            <input name="paysValue" value="15" placeholder="Amount" required />
+            <input name="paysIssuer" placeholder="Issuer address" />
+          </fieldset>
+          <label><input type="checkbox" name="passive" /> Passive offer</label>
+          <button type="submit">Place offer</button>
+        </form>
+        <pre id="dex-output" class="output"></pre>
+      </section>
+
+      <section class="card">
+        <h2>NFT offer accept</h2>
+        <form id="nft-form">
+          <input name="nftokenOfferIndex" placeholder="NFTokenOfferIndex (64 hex chars)" required />
+          <select name="side">
+            <option value="sell">Accept sell offer (buy the NFT)</option>
+            <option value="buy">Accept buy offer (sell my NFT)</option>
+          </select>
+          <button type="submit">Accept offer</button>
+        </form>
+        <pre id="nft-output" class="output"></pre>
+      </section>
+
+      <section class="card wide">
+        <h2>Open offers</h2>
+        <table id="offers">
+          <thead>
+            <tr><th>Seq</th><th>Taker gets</th><th>Taker pays</th><th>Quality</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section class="card wide">
+        <h2>NFTs held</h2>
+        <ul id="nfts"></ul>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

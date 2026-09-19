@@ -30,4 +30,11 @@ module.exports = tseslint.config(
       '@typescript-eslint/no-require-imports': 'off',
     },
   },
+  {
+    files: ['public/**/*.js'],
+    languageOptions: {
+      sourceType: 'script',
+      globals: { document: 'readonly', fetch: 'readonly', window: 'readonly', Number: 'readonly' },
+    },
+  },
 );
